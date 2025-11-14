@@ -14,17 +14,14 @@ import io
 import joblib
 import os
 
-# -------------------------------------------------
 # Streamlit Config
-# -------------------------------------------------
+
 st.set_page_config(page_title="☁️ ML Autoscaling Simulator", layout="wide")
 
 # Ensure models directory exists
 os.makedirs("models", exist_ok=True)
 
-# -------------------------------------------------
 # Data Loading and Normalization
-# -------------------------------------------------
 @st.cache_data
 def load_data(file_path="D:/cloud proj/data/aggregated_cpu.csv"):
     df = pd.read_csv(file_path)
@@ -52,9 +49,8 @@ def load_data(file_path="D:/cloud proj/data/aggregated_cpu.csv"):
 
 data = load_data()
 
-# -------------------------------------------------
 # ML Models
-# -------------------------------------------------
+
 class LSTMModel(nn.Module):
     def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
         super().__init__()
@@ -123,9 +119,8 @@ def train_lstm(df, seq_len=10, epochs=5):
     torch.save(model.state_dict(), "models/lstm_model.pt")
     return df, model
 
-# -------------------------------------------------
 # Autoscaling Simulator
-# -------------------------------------------------
+
 def simulate_autoscaling(actual, predicted, threshold=70, cooldown=5, live=False):
     instances, cooldown_timer, cost, violations = 1, 0, 0, 0
     history = []
@@ -156,9 +151,8 @@ def simulate_autoscaling(actual, predicted, threshold=70, cooldown=5, live=False
 
     return history, cost, violations
 
-# -------------------------------------------------
 # Streamlit UI
-# -------------------------------------------------
+
 st.title("☁️ ML-Driven Cloud Autoscaling Simulator")
 
 # uploaded = st.file_uploader("📂 Upload CSV (must include 'cpu_pct' + timestamp column)", type=["csv"])
@@ -235,9 +229,8 @@ merged = pd.merge(rf_df[['timestamp', 'rf_pred']],
                   on='timestamp', how='outer')
 merged = pd.merge(df, merged, on='timestamp', how='outer').sort_values('timestamp').ffill()
 
-# -------------------------------------------------
 # Simulation Controls
-# -------------------------------------------------
+
 threshold = st.slider("⚙️ Scaling Threshold (%)", 40, 90, 70)
 cooldown = st.slider("🕒 Cooldown Period", 1, 10, 5)
 model_choice = st.selectbox("🤖 Prediction Model", ["Random Forest", "LSTM"])
@@ -253,9 +246,9 @@ instances, cost, violations = simulate_autoscaling(
 )
 merged["instances"] = instances
 
-# -------------------------------------------------
+
 # Visualization
-# -------------------------------------------------
+
 tab1, tab2 = st.tabs(["📈 CPU Forecast", "📊 Autoscaling Behavior"])
 
 with tab1:
@@ -273,13 +266,13 @@ col1.metric("💰 Estimated Cost", f"${cost:.2f}")
 col2.metric("⚠️ SLA Violations", f"{violations}")
 col3.metric("🧠 Model", model_choice)
 
-# -------------------------------------------------
 # Download Predictions
-# -------------------------------------------------
+
 csv_buf = io.StringIO()
 merged.to_csv(csv_buf, index=False)
 st.download_button("⬇️ Download Predictions CSV", csv_buf.getvalue(),
                    "predictions.csv", "text/csv")
 
 st.caption("💡 ML-powered autoscaling simulator — retrain models, upload workloads, and visualize real-time scaling.")
+
 
